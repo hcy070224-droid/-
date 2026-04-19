@@ -211,7 +211,7 @@ count_15min = df_peak.resample('15T').size()
 max_15min = count_15min.max()
 #找这个最大值对应的时间段
 max_15min_time = count_15min.idxmax()
-#计算PHF5
+#计算PHF15
 PHF15 = peak_count / (4 * max_15min)
 
 #输出结果
@@ -251,9 +251,6 @@ for route in routes:#循环每条线路
 
 
 #任务6司机排名 + 热力图
-
-
-
 top_driver=df['驾驶员编号'].value_counts().head(10)#司机前10
 top_route = df['线路号'].value_counts().head(10)#线路前10
 top_station = df['上车站点'].value_counts().head(10)#上车站点前10
@@ -271,12 +268,12 @@ print(top_vehicle)
 #构造热力图数据（4×10）
 # 把四个前10拼成一个DataFrame
 heatmap_data = pd.DataFrame([
-    top_driver.values,
-    top_route.values,
-    top_station.values,
-    top_vehicle.values
+    top_driver.values.tolist(),
+    top_route.values.tolist(),
+    top_station.values.tolist(),
+    top_vehicle.values.tolist()
 ])
-heatmap_data.index = ['司机', '线路', '上车站点', '车辆']#设置行标签
+heatmap_data.index = ['司机','线路','上车站点','车辆']#设置行标签
 heatmap_data.columns = [f"Top{i}" for i in range(1, 11)]#设置列标签
 #画图
 plt.figure(figsize=(12, 6))
