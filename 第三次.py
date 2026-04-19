@@ -178,10 +178,10 @@ plt.show()#显示图像
 
 
 #任务4（高峰小时系数PHF）
-# PHF5：
-# 12×最大5分钟人数/高峰小时总人数
-# PHF15：
-# 4×最大15分钟人数/高峰小时总人数
+#PHF5：
+#12×最大5分钟人数/高峰小时总人数
+#PHF15：
+#4×最大15分钟人数/高峰小时总人数
 
 #只保留“上车刷卡”
 df_up = df[df['刷卡类型'] == 0]
@@ -196,7 +196,7 @@ df_peak = df_up[df_up['hour'] == peak_hour]
 #设置时间索引
 df_peak = df_peak.set_index('交易时间')
 
-#5分钟粒度统计# 每5分钟统计一次刷卡量
+#5分钟粒度统计#每5分钟统计一次刷卡量
 count_5min=df_peak.resample('5T').size()
 #找最大5分钟刷卡量
 max_5min = count_5min.max()
@@ -227,7 +227,7 @@ print(f"PHF15 ={peak_count}/( 4*{max_15min})={PHF15:.4f}")
 
 
 #任务5导出线路驾驶员信息
-#筛选线路 1101-1120
+#筛选线路1101-1120
 df_filtered = df[(df['线路号'] >= 1101) & (df['线路号'] <= 1120)]#只保留题目要求的20条线路
 #创建文件夹
 folder_name = "线路驾驶员信息"
@@ -235,10 +235,10 @@ os.makedirs(folder_name, exist_ok=True)
 #获取所有线路号
 routes = df_filtered['线路号'].unique()
 for route in routes:#循环每条线路
-    # 取出当前线路的数据
-    df_route = df_filtered[df_filtered['线路号'] == route]
-    # 5. 提取“车辆编号-驾驶员编号”并去重
-    pairs = df_route[['车辆编号', '驾驶员编号']].drop_duplicates()
+    #取出当前线路的数据
+    df_route=df_filtered[df_filtered['线路号']==route]
+    #提取“车辆编号-驾驶员编号”并去重
+    pairs=df_route[['车辆编号','驾驶员编号']].drop_duplicates()
     #写入文件
     file_path = os.path.join(folder_name, f"{route}.txt")
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -247,4 +247,50 @@ for route in routes:#循环每条线路
         for _, row in pairs.iterrows():
             f.write(f"{row['车辆编号']}\t{row['驾驶员编号']}\n")
     #打印路径
-    print(f"已生成文件: {file_path}")
+    print(f"已生成文件:{file_path}")
+
+
+#任务6司机排名 + 热力图
+
+
+
+top_driver=df['驾驶员编号'].value_counts().head(10)#司机前10
+top_route = df['线路号'].value_counts().head(10)#线路前10
+top_station = df['上车站点'].value_counts().head(10)#上车站点前10
+top_vehicle = df['车辆编号'].value_counts().head(10)#车辆前10
+#打印结果
+print("=== Top10 司机 ===")
+print(top_driver)
+print("\n=== Top10 线路 ===")
+print(top_route)
+print("\n=== Top10 上车站点 ===")
+print(top_station)
+print("\n=== Top10 车辆 ===")
+print(top_vehicle)
+
+#构造热力图数据（4×10）
+# 把四个前10拼成一个DataFrame
+heatmap_data = pd.DataFrame([
+    top_driver.values,
+    top_route.values,
+    top_station.values,
+    top_vehicle.values
+])
+heatmap_data.index = ['司机', '线路', '上车站点', '车辆']#设置行标签
+heatmap_data.columns = [f"Top{i}" for i in range(1, 11)]#设置列标签
+#画图
+plt.figure(figsize=(12, 6))
+sns.heatmap(
+    heatmap_data,
+    annot=True,#每个格子显示数值
+    fmt='d',#整数格式
+    cmap='YlOrRd'#颜色
+)
+#标题
+plt.title("公交服务绩效Top10热力图\n（颜色越深表示服务人次越多）")
+plt.xticks(rotation=0)#x轴标签不旋转
+plt.savefig("performance_heatmap.png", dpi=150, bbox_inches='tight')#保存图片
+plt.show()#显示
+#输出结论
+print("\n=== 分析结论 ===")
+print("从热力图可以看出，不同维度的服务人次存在明显差异。其中部分线路和司机的服务人次显著高于其他对象，说明客流分布不均衡，可能集中在少数热门线路和高频运行车辆上。同时，上车站点的分布也表现出类似规律，部分站点客流量远高于平均水平，反映出城市出行需求的集中性。这些信息可为公交调度优化和资源配置提供重要参考。")
