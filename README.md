@@ -54,11 +54,9 @@ after_rows = len(df)
 #删除行
 print("\n删除异常数据(ride_stops=0):", before_rows - after_rows, "条")
 
-# 6.检查缺失值
-print("\n=== 各列缺失值数量 ===")
+print("\n=== 各列缺失值数量 ===")#6.检查缺失值
 print(df.isnull().sum())
-# 7.删除缺失值
-df = df.dropna()
+df = df.dropna()#7.删除缺失值
 print("\n缺失值处理完成(已删除包含缺失值的行)")
 
 生成的问题：最开始AI生成的代码无法运行，后使用了 seaborn 的默认误差棒（errorbar='sd'），但是发现不是要求中的任务要求因此改成了使用我自己计算的 std_stops
