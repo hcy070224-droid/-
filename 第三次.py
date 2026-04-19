@@ -29,5 +29,22 @@ df['ride_stops'] = (df['下车站点'] - df['上车站点']).abs()
 print("\n=== 搭乘站点数示例 ===")
 print(df[['上车站点', '下车站点', 'ride_stops']].head())
 
+#异常处理
+# 5. 删除异常数据（ride_stops = 0）
+# 记录删除前的数据量
+before_rows = len(df)
+# 删除 ride_stops 等于 0 的记录
+df = df[df['ride_stops'] != 0]
+# 删除后数据量
+after_rows = len(df)
+# 删除行
+print("\n删除异常数据(ride_stops=0):", before_rows - after_rows, "条")
+
+# 6. 检查缺失值
+print("\n=== 各列缺失值数量 ===")
+print(df.isnull().sum())
+# 7. 删除缺失值
+df = df.dropna()
+print("\n缺失值处理完成(已删除包含缺失值的行)")
 
 
