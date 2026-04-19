@@ -49,8 +49,6 @@ df = df.dropna()
 print("\n缺失值处理完成(已删除包含缺失值的行)")
 
 
-
-
 #任务2
 #统计两个时间段人数
 #24小时柱状图
@@ -156,16 +154,24 @@ print(route_stats.head(10))
 #3.可视化处理
 #取平均值最高的前15条线路
 top15 = route_stats.head(15)
+top15['线路号'] = top15['线路号'].astype(str)
 plt.figure(figsize=(10, 6)) #设置图像大小
 
 #使用seaborn画水平条形图
 sns.barplot(
-    data=top15, #数据来源
-    x='mean_stops',#x轴：平均搭乘站点数
-    y='线路号',#y轴：线路号
-    palette='Blues_d',  #颜色风格
-    errorbar='sd',#误差棒（标准差）
-    capsize=0.3#误差棒端点大小
+    data=top15,
+    x='mean_stops',
+    y='线路号',
+    palette='Blues_d'
+)
+plt.errorbar(#手动添加误差棒
+    x=top15['mean_stops'],
+    y=range(len(top15)),
+    xerr=top15['std_stops'],
+    fmt='none',
+    ecolor='black',
+    capsize=0.3,
+    elinewidth=1
 )
 #添加标题和坐标轴标签
 plt.title("各线路平均搭乘站点数（Top15）")
