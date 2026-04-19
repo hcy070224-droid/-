@@ -174,3 +174,52 @@ plt.ylabel("线路号")
 plt.xlim(0, None)
 plt.savefig("route_stops.png", dpi=150)#保存图片
 plt.show()#显示图像
+
+
+#任务4（高峰小时系数PHF）
+# PHF5：
+# 12×最大5分钟人数/高峰小时总人数
+# PHF15：
+# 4×最大15分钟人数/高峰小时总人数
+
+#只保留“上车刷卡”
+df_up = df[df['刷卡类型'] == 0]
+#按小时统计刷卡量
+hour_counts = df_up.groupby('hour').size()
+#找到刷卡量最大的小时（高峰小时）
+peak_hour = hour_counts.idxmax()#哪个小时最多
+peak_count = hour_counts.max()#这个小时的人数
+print(f"高峰小时：{peak_hour:02d}:00 ~ {peak_hour+1:02d}:00，刷卡量：{peak_count} 次")
+#取出“高峰小时”的数据
+df_peak = df_up[df_up['hour'] == peak_hour]
+#设置时间索引
+df_peak = df_peak.set_index('交易时间')
+
+#5分钟粒度统计# 每5分钟统计一次刷卡量
+count_5min=df_peak.resample('5T').size()
+#找最大5分钟刷卡量
+max_5min = count_5min.max()
+#找这个最大值对应的时间段
+max_5min_time = count_5min.idxmax()
+#计算PHF5
+PHF5 = peak_count / (12 * max_5min)
+
+#15分钟粒度统计
+count_15min = df_peak.resample('15T').size()
+#找最大15分钟刷卡量
+max_15min = count_15min.max()
+#找这个最大值对应的时间段
+max_15min_time = count_15min.idxmax()
+#计算PHF5
+PHF15 = peak_count / (4 * max_15min)
+
+#输出结果
+#计算时间段结束时间
+end_5min = max_5min_time + pd.Timedelta(minutes=5)
+end_15min = max_15min_time + pd.Timedelta(minutes=15)
+
+print(f"\n最大5分钟刷卡量（{max_5min_time.strftime('%H:%M')}~{end_5min.strftime('%H:%M')}）：{max_5min} 次")
+print(f"PHF5  = {peak_count} / (12*{max_5min}) = {PHF5:.4f}")
+
+print(f"\n最大15分钟刷卡量（{max_15min_time.strftime('%H:%M')}~{end_15min.strftime('%H:%M')}）：{max_15min} 次")
+print(f"PHF15 ={peak_count}/( 4*{max_15min})={PHF15:.4f}")
