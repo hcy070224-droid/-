@@ -4,6 +4,7 @@ import numpy as np #数值计算库
 import pandas as pd #数据处理核心库
 import matplotlib.pyplot as plt #用于画图
 import seaborn as sns#补充画图工具
+import os# 用来创建文件夹
 #2.读取数据
 df = pd.read_csv("ICData.csv", sep=",") # sep="," 表示数据是用“”分隔
 print("=== 数据前5行 ===")#查看前5行，确认数据是否读取正确
@@ -223,3 +224,27 @@ print(f"PHF5  = {peak_count} / (12*{max_5min}) = {PHF5:.4f}")
 
 print(f"\n最大15分钟刷卡量（{max_15min_time.strftime('%H:%M')}~{end_15min.strftime('%H:%M')}）：{max_15min} 次")
 print(f"PHF15 ={peak_count}/( 4*{max_15min})={PHF15:.4f}")
+
+
+#任务5导出线路驾驶员信息
+#筛选线路 1101-1120
+df_filtered = df[(df['线路号'] >= 1101) & (df['线路号'] <= 1120)]#只保留题目要求的20条线路
+#创建文件夹
+folder_name = "线路驾驶员信息"
+os.makedirs(folder_name, exist_ok=True)
+#获取所有线路号
+routes = df_filtered['线路号'].unique()
+for route in routes:#循环每条线路
+    # 取出当前线路的数据
+    df_route = df_filtered[df_filtered['线路号'] == route]
+    # 5. 提取“车辆编号-驾驶员编号”并去重
+    pairs = df_route[['车辆编号', '驾驶员编号']].drop_duplicates()
+    #写入文件
+    file_path = os.path.join(folder_name, f"{route}.txt")
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(f"线路号: {route}\n")
+        f.write("车辆编号\t驾驶员编号\n")
+        for _, row in pairs.iterrows():
+            f.write(f"{row['车辆编号']}\t{row['驾驶员编号']}\n")
+    #打印路径
+    print(f"已生成文件: {file_path}")
