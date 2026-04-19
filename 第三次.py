@@ -3,7 +3,7 @@
 import numpy as np #数值计算库
 import pandas as pd #数据处理核心库
 import matplotlib.pyplot as plt #用于画图
-
+import seaborn as sns#补充画图工具
 #2.读取数据
 df = pd.read_csv("ICData.csv", sep=",") # sep="," 表示数据是用“”分隔
 print("=== 数据前5行 ===")#查看前5行，确认数据是否读取正确
@@ -112,3 +112,65 @@ plt.legend(handles=legend_elements)
 plt.savefig("hour_distribution.png", dpi=150)
 #10.显示图像
 plt.show()
+
+# 任务3线路站点
+
+#1.定义函数
+def analyze_route_stops(df, route_col='线路号', stops_col='ride_stops'):
+    """
+    计算各线路乘客的平均搭乘站点数及其标准差。
+    Parameters
+    ----------
+    df : pd.DataFrame  预处理后的数据集
+    route_col : str    线路号列名
+    stops_col : str    搭乘站点数列名
+    Returns
+    -------
+    pd.DataFrame  包含列:线路号、mean_stops、std_stops,按 mean_stops 降序排列
+    """
+    grouped = df.groupby(route_col)[stops_col]  #按线路号分组，并取出搭乘站点数
+    #单独每条线路统计“坐了多少站”
+    #计算每条线路的平均搭乘站点数
+    mean_stops = grouped.mean()
+    #计算每条线路的标准差
+    std_stops = grouped.std()
+
+    #将结果整理成一个新的DataFrame
+    result = pd.DataFrame({
+        route_col: mean_stops.index,   #线路号作为引索
+        'mean_stops': mean_stops.values,  #平均值
+        'std_stops': std_stops.values     #标准差
+    })
+    #按平均搭乘站点数从大到小排序#坐得最远的线路排在最前面
+    result = result.sort_values(by='mean_stops', ascending=False)
+    #返回结果
+    return result
+
+#2.调用函数
+route_stats = analyze_route_stops(df)
+#输出前10条结果
+print("=== 各线路平均搭乘站点数(前10)===")
+print(route_stats.head(10))
+
+#3.可视化处理
+#取平均值最高的前15条线路
+top15 = route_stats.head(15)
+plt.figure(figsize=(10, 6)) #设置图像大小
+
+#使用seaborn画水平条形图
+sns.barplot(
+    data=top15, #数据来源
+    x='mean_stops',#x轴：平均搭乘站点数
+    y='线路号',#y轴：线路号
+    palette='Blues_d',  #颜色风格
+    errorbar='sd',#误差棒（标准差）
+    capsize=0.3#误差棒端点大小
+)
+#添加标题和坐标轴标签
+plt.title("各线路平均搭乘站点数（Top15）")
+plt.xlabel("平均搭乘站点数")
+plt.ylabel("线路号")
+#设置x轴从0开始
+plt.xlim(0, None)
+plt.savefig("route_stops.png", dpi=150)#保存图片
+plt.show()#显示图像
