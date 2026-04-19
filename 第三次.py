@@ -70,3 +70,45 @@ night_percent = night_count / total_count * 100
 print("=== 时间段统计结果 ===")
 print(f"早7点前刷卡量:{morning_count} 次，占比：{morning_percent:.2f}%")
 print(f"晚22点后刷卡量:{night_count} 次，占比：{night_percent:.2f}%")
+
+#任务2(b)：24小时分布图
+# 解决中文显示问题
+plt.rcParams['font.sans-serif']=['SimHei']  #黑体
+plt.rcParams['axes.unicode_minus']=False    #解决负号显示为方块的问题
+plt.rcParams['font.family']='sans-serif'
+
+#1.统计每个小时的刷卡量
+hour_counts = df_up.groupby('hour').size()
+#2.补全0~23小时
+hour_counts = hour_counts.reindex(range(24), fill_value=0)
+
+colors = []#3.设置颜色（重点：区分时间段）
+for h in range(24):
+    if h < 7:
+        colors.append('blue') #早峰前
+    elif h >= 22:
+        colors.append('red') #深夜
+    else:
+        colors.append('gray') #普通时间
+
+plt.figure(figsize=(10, 5))#4.画图
+plt.bar(range(24), hour_counts.values, color=colors)
+plt.title("24小时刷卡量分布")#5.设置标题和标签
+plt.xlabel("小时")
+plt.ylabel("刷卡量（次）")
+#6.设置x轴刻度（每2小时一个）
+plt.xticks(range(0, 24, 2))
+#7.添加网格线
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+#8.添加图例
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='blue', label='早峰前(<7点)'),
+    Patch(facecolor='red', label='深夜(>=22点)'),
+    Patch(facecolor='gray', label='其他时段')
+]
+plt.legend(handles=legend_elements)
+#9.保存图片
+plt.savefig("hour_distribution.png", dpi=150)
+#10.显示图像
+plt.show()
